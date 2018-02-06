@@ -1,112 +1,76 @@
-package com.example.george.savedata;
+package com.example.george.jsonaction;
 
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-ListView list;
- //Boolean isupdate;
-    SQLiteDatabase db;
-    Dbhelper helper;
-    private ArrayList<String> userId=new ArrayList<String>();
-    private ArrayList<String> name=new ArrayList<String>();
-    private ArrayList<String> age=new ArrayList<String>();
-    Displayadapter adapter;
-    AlertDialog.Builder alert;
-
-
-
+ListView listView;
+   ArrayList<String> s=new ArrayList<String>();
+    ArrayList<String> s1=new ArrayList<String>();
+    ArrayList<String> s2=new ArrayList<String>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-     //  getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        //getSupportActionBar().setHomeAsUpIndicator(R.drawable.);
-        list=(ListView)findViewById(R.id.listView);
-        helper=new Dbhelper(this);
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
-                Intent in=new Intent(getApplicationContext(),addactivity.class);
-                in.putExtra("title",name.get(i));
-                in.putExtra("note",age.get(i));
-                in.putExtra("value",true);
-                in.putExtra("id",userId.get(i));
-                startActivity(in);
+listView=(ListView)findViewById(R.id.list);
+        String company="{\"Employee\" :[				"
+                +"	{                                   "
+                +"		\"id\":\"01\",                  "
+                +"		\"name\":\"Gopal Varma\",       "
+                +"		\"salary\":\"500000\"           "
+                +"	},                                  "
+                +"	{                                   "
+                +"		\"id\":\"02\",                  "
+                +"		\"name\":\"Sairamkrishna\",     "
+                +"		\"salary\":\"500000\"           "
+                +"	},                                  "
+                +"	{                                   "
+                +"		\"id\":\"03\",                  "
+                +"		\"name\":\"Sathish kallakuri\", "
+                +"		\"salary\":\"600000\"           "
+                +"	}                               "
+                +"	]                                   "
+                +"	}";
+String data="";
+        try {
+            JSONObject object=new JSONObject(company);
+            JSONArray test=object.getJSONArray("Employee");
+            for(int i=0;i<test.length();i++)
+            {
+                JSONObject jsonObject=test.getJSONObject(i);
+                int id=Integer.parseInt(jsonObject.optString("id").toString());
+                String name=jsonObject.optString("name").toString();
+                String salary=jsonObject.optString("salary").toString();
+                s.add(String.valueOf(id));
+                s1.add(name);
+                s2.add(salary);
             }
-        });
-        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-alert=new  AlertDialog.Builder(MainActivity.this,android.R.style.Theme_Holo_Dialog_NoActionBar);
-                alert.setTitle("Delete");
-                alert.setMessage("Do you Want Delete");
-                alert.setPositiveButton("yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-db.delete(helper.TABLENAME,helper.ID+"="+userId.get(position),null);
-                        displaydata();
-                        dialog.cancel();
-                    }
+           Customadapter ad=new Customadapter(getApplicationContext(),s,s1,s2);
+            listView.setAdapter(ad);
 
-
-                });
-                alert.setNegativeButton("no" ,new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-
-                    }
-                });
-AlertDialog build=alert.create();
-                build.show();
-                return true;
-            }
-        });
-
-    }
-    @Override
-protected void onResume()
-{
-    displaydata();
-super.onResume();
-}
-    private void displaydata() {
-        db=helper.getWritableDatabase();
-        Cursor mcursor=db.rawQuery("SELECT * FROM "+Dbhelper.TABLENAME,null);
-        name.clear();
-        age.clear();
-        userId.clear();
-        if(mcursor.moveToFirst())
-        {
-            do {
-userId.add(mcursor.getString(mcursor.getColumnIndex(Dbhelper.ID)));
-                name.add(mcursor.getString(mcursor.getColumnIndex(Dbhelper.NAME)));
-                age.add(mcursor.getString(mcursor.getColumnIndex(Dbhelper.AGE)));
-            }
-            while (mcursor.moveToNext());
         }
-         adapter=new Displayadapter(getApplicationContext(),userId,name,age);
-        list.setAdapter(adapter);
+        catch (JSONException e)
+        {
+            e.printStackTrace();
+        }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -126,14 +90,22 @@ userId.add(mcursor.getString(mcursor.getColumnIndex(Dbhelper.ID)));
         if (id == R.id.action_settings) {
             return true;
         }
-        if(id==R.id.add)
+if(id==R.id.ret)
+{
+    Intent i=new Intent(getApplicationContext(),Jsonretrieve.class);
+    startActivity(i);
+}
+        if(id==R.id.send)
         {
-         Intent in=new Intent(getApplicationContext(),addactivity.class);
-            in.putExtra("value",false);
-            startActivity(in);
-            return  true;
+            Intent i=new Intent(getApplicationContext(),Jsonsend.class);
+            startActivity(i);
         }
-
+        if(id==R.id.imagesend)
+        {
+            Intent i=new Intent(getApplicationContext(),Imagetext.class);
+            startActivity(i);
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 }
